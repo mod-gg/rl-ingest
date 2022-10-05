@@ -1,4 +1,4 @@
-from numpy import full
+from copy import deepcopy
 import pandas as pd
 from octanegg import Octane
 def create_dataframes():
@@ -8,7 +8,7 @@ def create_dataframes():
             page = 1
             while True:
                 current_page_events = client.get_games(
-                    group='rlcs', after="2022-04-01", before="2022-10-01", page=page
+                    group='rlcs', after="2022-04-01", before="2022-06-01", page=page
                 )
                 if not current_page_events:  # no more games
                     break
@@ -31,30 +31,29 @@ def create_dataframes():
                     player_games.append(player | id_dict )
         return(player_games, team_games, match_games, event_games)
 
-    def sort_full(games):
-        full_games = []
+    def split_games(games):
+        team_games=[]
         ks=['blue','orange']
-        game_keys=[]
         for game in games:
             for k in ks:
                 filterByKey = lambda keys: {x: game[x] for x in game.keys() if x != k}
                 a=filterByKey(game)
                 a['team']=a.pop(ks[ks.index(k)-1])
-                game_keys += a.keys()
-                full_games.append(a)
-        testgame=pd.json_normalize(full_games, record_path=['team','players'],meta=list(set(game_keys)),errors='ignore')
-        full_games[0:2]
-
-    def normalize_dataframes(player_games, team_games, match_games, event_games):
-        df_players=pd.json_normalize(player_games)
-        df_teams=pd.json_normalize(team_games)
-        df_matches=pd.json_normalize(match_games)
-        df_matches=df_matches[df_matches.columns[df_matches.columns.str.startswith(('_id','slug','event','stage','date','format','game_id'))]]
-        df_events=pd.json_normalize(event_games)
-        return(df_players, df_teams, df_matches, df_events)
+                team_games.append(a)
+    
+        player_games=[]
+        for game in team_games:
+            for i in range(len(game['team']['players'])):
+                igame=deepcopy(game)
+                igame['team']['players']=game['team']['players'][i]
+                player_games.append(igame)
+        
+        return(player_games)
+    def normalize_dataframes(player_games):
+        df=pd.json_normalize(player_games)
+        return(df)
 
     games=get_games()
-    (player_games, team_games, match_games, event_games) = sort_games(games)
-    (df_players, df_teams, df_matches, df_events)=normalize_dataframes(player_games, team_games, match_games, event_games)
-    return(df_players, df_teams, df_matches, df_events)
-
+    player_games = sort_games(games)
+    df=normalize_dataframes(player_games)
+    return(df)
