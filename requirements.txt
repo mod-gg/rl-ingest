@@ -1,6 +1,0 @@
-numpy
-matplotlib
-octanegg
-pandas
-pydantic
-sklearn
