@@ -1,3 +1,7 @@
 .history
+<<<<<<< HEAD
 .vscode
 .DS_Store
+=======
+venv
+>>>>>>> 33b710c (updating loader to dlt spec and argparse)
