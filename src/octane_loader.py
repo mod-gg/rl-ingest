@@ -44,7 +44,8 @@ class OctaneLoader:
         dlt_pipeline = dlt.pipeline(
             pipeline_name="rocket-league-pipeline",
             dataset_name="rocket-league",
-            destination=Destination.from_reference("postgres", destination_name="rl-postgres"),
+            destination=dlt.destinations.postgres("postgresql://mark:postgres@localhost/rocket-league")
+            # destination=Destination.from_reference("postgres", destination_name="rl-postgres"),
             # full_refresh=True, # only use this to create one-off schemas
         )
         try:
@@ -64,9 +65,9 @@ class OctaneLoader:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--group", type=str)
-    parser.add_argument("--after", type=str)
-    parser.add_argument("--before", type=str)
+    parser.add_argument("--group", type=str, default='rlcs')
+    parser.add_argument("--after", type=str, default='2024-05-01')
+    parser.add_argument("--before", type=str, default='2024-06-01')
     args = parser.parse_args()
     logging.info(f"Retrieving games with arguments {vars(args)}")
     octane_loader = OctaneLoader()
